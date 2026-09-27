@@ -19,9 +19,11 @@ const LoginForm = () => {
     }
 
     if (!state.success) {
-      toast.error("Invalid Credentials")
+      toast.error(state.message)
     }
   }, [state])
+
+  console.log(state);
 
 
 
