@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-
 const publicSans = Public_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
@@ -30,7 +29,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Toaster position="top-right" />
         {children}
-
       </body>
     </html>
   );
