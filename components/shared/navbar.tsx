@@ -20,6 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { logout } from '@/app/service/logout'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const navItems = [
   { label: 'Overview', href: '#overview' },
@@ -58,6 +63,22 @@ type NavbarProps = {
 }
 
 export function Navbar({ user }: NavbarProps) {
+  const [isLogout, setIsLogout] = useState(false);
+  const router = useRouter();
+  const handleUserMenuAction = async (action: string) => {
+    if (action === "logout") {
+      await logout();
+      setIsLogout(true);
+      router.push("/login");
+    }
+  }
+
+  useEffect(() => {
+    if (isLogout) {
+      toast.success("User logged out succesfully!")
+    }
+  }, [isLogout])
+
   return (
     <header className="border-b bg-background">
       <nav
@@ -66,7 +87,7 @@ export function Navbar({ user }: NavbarProps) {
       >
         <div className="flex min-w-0 items-center gap-10">
           <a
-            href="#home"
+            href={"/"}
             className="flex items-center gap-2 text-lg font-semibold tracking-tight"
           >
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
@@ -97,50 +118,62 @@ export function Navbar({ user }: NavbarProps) {
             <Bell />
           </Button> */}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label="Open user menu"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              <Avatar className="size-8">
-                <AvatarFallback className="bg-primary text-xs text-primary-foreground">
-                  JD
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm font-medium sm:inline">{user.data?.profile.name || "Name"}</span>
-              <ChevronDown className="text-muted-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>
-                  <p className="font-medium">{user.data?.profile.name || "Name"}</p>
-                  <p className="font-normal text-muted-foreground">{user.data?.profile.email || "Email"}</p>
-                </DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <User />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CircleHelp />
-                  Help center
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
-                <LogOut />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {
+            user.success ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Open user menu"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  <Avatar className="size-8">
+                    <AvatarFallback className="bg-primary text-xs text-primary-foreground">
+                      JD
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden text-sm font-medium sm:inline">{user.data?.profile.name || "Name"}</span>
+                  <ChevronDown className="text-muted-foreground" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>
+                      <p className="font-medium">{user.data?.profile.name || "Name"}</p>
+                      <p className="font-normal text-muted-foreground">{user.data?.profile.email || "Email"}</p>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <User />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Settings />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <CircleHelp />
+                      Help center
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={async () => {
+                    await handleUserMenuAction("logout")
+                  }} variant="destructive">
+                    <LogOut />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href={"/login"}>
+                <Button className='cursor-pointer'>
+                  Login
+                </Button>
+              </Link>
+            )
+          }
         </div>
       </nav>
-    </header>
+    </header >
   )
 }
