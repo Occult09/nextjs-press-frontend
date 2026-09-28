@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Bell,
   ChevronDown,
   CircleHelp,
   LogOut,
@@ -21,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { logout } from '@/app/service/logout'
-import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -63,21 +61,14 @@ type NavbarProps = {
 }
 
 export function Navbar({ user }: NavbarProps) {
-  const [isLogout, setIsLogout] = useState(false);
   const router = useRouter();
   const handleUserMenuAction = async (action: string) => {
     if (action === "logout") {
       await logout();
-      setIsLogout(true);
+      toast.success("User logged out successfully!")
       router.push("/login");
     }
   }
-
-  useEffect(() => {
-    if (isLogout) {
-      toast.success("User logged out succesfully!")
-    }
-  }, [isLogout])
 
   return (
     <header className="border-b bg-background">
