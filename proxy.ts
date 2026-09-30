@@ -1,22 +1,53 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
+import { jwtUtils } from './utils/jwt';
+import { cookies } from 'next/headers';
+import { getNewAccessToken } from './app/service/refreshToken';
 
 const AUTH_ROUTES = ["/login", "/register"];
 const PUBLIC_ROUTES = ["/", "/news"]
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
+    const cookieStore = await cookies()
 
-    const accessToken = request.cookies.get("accessToken")?.value;
+    let accessToken = request.cookies.get("accessToken")?.value;
+    const refreshToken = request.cookies.get("refreshToken")?.value;
 
-    const decodedToken = accessToken ? jwt.decode(accessToken) as JwtPayload : null;
+    let decodedAccessToken = accessToken ? jwtUtils.verifiedToken(accessToken, process.env.JWT_ACCESS_SECRET as string) : null;
+    const decodedRefreshToken = refreshToken ? jwtUtils.verifiedToken(refreshToken, process.env.JWT_REFRESH_SECRET as string) : null;
 
     let userRole = null;
 
-    if (decodedToken) {
-        userRole = decodedToken.role;
+    if (!decodedAccessToken && decodedRefreshToken) {
+        const result = await getNewAccessToken();
+
+        if (result.success) {
+            const newAccessToken = result.data.accessToken;
+
+            cookieStore.set("accessToken", newAccessToken, {
+                httpOnly: true,
+                maxAge: 60 * 60 * 24,
+                sameSite: "lax"
+            })
+
+            accessToken = newAccessToken;
+
+            decodedAccessToken = jwtUtils.verifiedToken(accessToken!, process.env.JWT_ACCESS_SECRET as string)
+        }
+
+
+    }
+
+    if (!decodedAccessToken) {
+        cookieStore.delete("accessToken");
+
+    }
+
+    if (decodedAccessToken) {
+        userRole = (decodedAccessToken as JwtPayload).role;
     }
 
     if (accessToken && AUTH_ROUTES.includes(pathname)) {
